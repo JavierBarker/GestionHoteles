@@ -1,0 +1,54 @@
+HOTEL
+-solicitudes
+-nombre
+-direccion
+-idAdministrador
+-habitaciones:[{
+	-Nombre
+	-descripcion
+	-costo
+}]
+-Eventos:[{
+	-nombreEvento
+	-descripcion
+	-tipoEvento
+}]
+
+
+RESERVACIONES
+-idCliente
+-idHotel
+-habitaciones[{
+	-idHabitacion
+	-nombre
+	-descripcion
+	-costo
+	-fechaInicioReservacion
+	-fechaFinalReservacion
+}]
+-total
+-idEvento
+-cancelacion
+
+
+USUARIOS
+-usuario
+-nombre
+-password
+-rol
+-facturas[{
+	-idCliente
+	-idHotel
+	-habitaciones[{
+		-idHabitacion
+		-nombre
+		-descripcion
+		-costo
+		-fechaInicioReservacion
+		-fechaFinalReservacion
+	}]
+	-total
+	-idEvento
+	-diastranscurridos
+	-serviciosExtra
+}]
