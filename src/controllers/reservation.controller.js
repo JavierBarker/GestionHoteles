@@ -11,40 +11,28 @@ function reserveRoom(req, res){
     var modelReservation = new Reservation();
     if(req.user.role === 'ROL_USER'){
         if (params.entryDate && params.exitDate) {
-            var entryDate = new Date(params.entryDate);
-            var exitDate = new Date(params.exitDate);
-            Reservation.find((err, foundReservations) =>{
-                
-                for (let index = 0; index < foundReservations.length; index++) {
-                    if (entryDate.getTime() < foundReservations[index].room.entryDate.getTime() || entryDate.getTime() > foundReservations[index].room.exitDate) {
-                        if(exitDate.getTime() < foundReservations[index].room.entryDate.getTime() || entryDate.getTime() > foundReservations[index].room.exitDate){
-                            Hotel.findOne({_id: hotelId, "rooms._id": roomId}, {"rooms.$": 1}, (err, foundRoom)=>{
-                
-                                modelReservation.clientId = req.user.sub;
-                                modelReservation.hotelId = hotelId;
-                                modelReservation.room = {
-                                    roomId: roomId,
-                                    name: foundRoom.rooms[0].nameRoom,
-                                    description: foundRoom.rooms[0].descriptionRoom,
-                                    services: foundRoom.rooms[0].services,
-                                    cost: foundRoom.rooms[0].cost,
-                                    entryDate: params.entryDate,
-                                    exitDate: params.exitDate
-                                };
-                                modelReservation.total = foundRoom.rooms[0].cost;
-                                modelReservation.cancel = false;
-                                
-                                modelReservation.save((err, savedReservation) => {
-                                    if (err) return res.status(500).send({message: "Error al hacer la reservacion", err});
-                                    if (!savedReservation)return res.status(500).send({message: "No se hizo la reservacion"});
-                                    return res.status(200).send({savedReservation});
-                                })
-                            })
-                        }
-                    }else{
-                        return res.status(500).send({message: "esta fehca esta en uso"});
-                    }
-                }
+            
+            Hotel.findOne({_id: hotelId, "rooms._id": roomId}, {"rooms.$": 1}, (err, foundRoom)=>{
+                modelReservation.clientId = req.user.sub;
+                modelReservation.hotelId = hotelId;
+                modelReservation.room = {
+                    roomId: roomId,
+                    name: foundRoom.rooms[0].nameRoom,
+                    description: foundRoom.rooms[0].descriptionRoom,
+                    services: foundRoom.rooms[0].services,
+                    cost: foundRoom.rooms[0].cost,
+                    entryDate: params.entryDate,
+                    exitDate: params.exitDate
+                };
+                modelReservation.total = foundRoom.rooms[0].cost;
+                modelReservation.cancel = false;
+                Hotel.findByIdAndUpdate(hotelId, {$inc:{requests: 1}},{new: true, useFindAndModify: false},(err, incRequest)=>{
+                    modelReservation.save((err, savedReservation) => {
+                        if (err) return res.status(500).send({message: "Error al hacer la reservacion", err});
+                        if (!savedReservation)return res.status(500).send({message: "No se hizo la reservacion"});
+                        return res.status(200).send({savedReservation});
+                    })
+                })
             })
         }else{
         return res.status(500).send({message: 'Rellene los Espacios Necesarios'});
@@ -54,6 +42,17 @@ function reserveRoom(req, res){
     }
 }
 
+function showMyReservations(req, res) {
+    if (req.user.role === "ROL_USER") {
+        Reservation.find({clientId: req.user.sub}).populate('hotelId', 'name address').exec((err, foundReservations)=>{
+            if (err) return res.status(500).send({ message: "Error al hacer la Peticion", err });
+            if (!foundReservations) return res.status(500).send({ message: "No se Encontraron las Reservaciones" });
+            return res.status(200).send({ foundReservations });
+        })
+    }else{
+        return res.status(500).send({message: 'No tiene los permisos Necesarios'});
+    }
+}
 //FECHAS DISCPONIBLES
 /*function datesAvailable(entryDate = Date, exitDate = Date) {
     Reservation.find((err, foundReservations) =>{
@@ -70,5 +69,6 @@ function reserveRoom(req, res){
 }*/
 
 module.exports = {
-    reserveRoom
+    reserveRoom,
+    showMyReservations
 }
