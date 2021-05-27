@@ -18,16 +18,14 @@ HOTEL
 RESERVACIONES
 -idCliente
 -idHotel
--habitaciones[{
-	-idHabitacion
+-habitaciones{
 	-nombre
 	-descripcion
 	-costo
 	-fechaInicioReservacion
 	-fechaFinalReservacion
-}]
+}
 -total
--idEvento
 -cancelacion
 
 
